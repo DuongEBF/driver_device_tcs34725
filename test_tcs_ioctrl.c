@@ -12,21 +12,25 @@
 #define TCS34725_IOCTL_READ_R _IOR('t', 2, int)
 #define TCS34725_IOCTL_READ_G _IOR('t', 3, int)
 #define TCS34725_IOCTL_READ_B _IOR('t', 4, int)
-
+#define TCS34725_IOCTL_SET_GAIN _IOW('t', 5, int)
+#define TCS34725_IOCTL_SET_ATIME _IOW('t', 6, int)
 int main()
 {
     int fd;
     int ret;
     int color_data;
-
+    int gain = 0x03; // 60x
+    int atime = 0xD5; // integration time ~ 101ms
     // Mở thiết bị TCS34725
     fd = open(DEVICE_NAME, O_RDWR);
     if (fd < 0) {
         perror("Failed to open the device");
         return errno;
     }
-
+    ioctl(fd, TCS34725_IOCTL_SET_GAIN, &gain);
+    ioctl(fd, TCS34725_IOCTL_SET_ATIME, &atime);
     printf("Device opened successfully\n");
+
     while(1){
         // Đọc giá trị C (Clear)
         ret = ioctl(fd, TCS34725_IOCTL_READ_C, &color_data);

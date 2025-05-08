@@ -27,6 +27,9 @@
 #define TCS34725_IOCTL_READ_R _IOR(TCS34725_IOCTL_MAGIC, 2, int)
 #define TCS34725_IOCTL_READ_G _IOR(TCS34725_IOCTL_MAGIC, 3, int)
 #define TCS34725_IOCTL_READ_B _IOR(TCS34725_IOCTL_MAGIC, 4, int)
+#define TCS34725_IOCTL_SET_GAIN    _IOW(TCS34725_IOCTL_MAGIC, 5, int)
+#define TCS34725_IOCTL_SET_ATIME   _IOW(TCS34725_IOCTL_MAGIC, 6, int)
+
 
 static struct i2c_client *tcs34725_client;
 static struct class* tcs34725_class = NULL;
@@ -63,6 +66,16 @@ static long tcs34725_ioctl(struct file *file, unsigned int cmd, unsigned long ar
             break;
         case TCS34725_IOCTL_READ_B:
             data = tcs34725_read_data(tcs34725_client, TCS34725_REG_BDATAL);
+            break;
+        case TCS34725_IOCTL_SET_GAIN:
+            if (copy_from_user(&data, (int __user *)arg, sizeof(data)))
+                return -EFAULT;
+            ret = i2c_smbus_write_byte_data(tcs34725_client, TCS34725_REG_COMMAND | 0x0F, data);
+            break;
+        case TCS34725_IOCTL_SET_ATIME:
+            if (copy_from_user(&data, (int __user *)arg, sizeof(data)))
+                return -EFAULT;
+            ret = i2c_smbus_write_byte_data(tcs34725_client, TCS34725_REG_COMMAND | 0x01, data);
             break;
         default:
             return -EINVAL;

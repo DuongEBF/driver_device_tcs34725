@@ -158,7 +158,7 @@ MAKEFILE
 
 To compile the kernel module, you can use a simple Makefile as follows:
 
-obj-m += tcs34725.o
+obj-m += tcs34725_ioctrl_driver.o
 
 all:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
@@ -167,17 +167,58 @@ clean:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
 
 Explanation of the Makefile:
-- obj-m += tcs34725.o: This tells the build system that the tcs34725.o object file is to be compiled as part of a kernel module.
+- obj-m += tcs34725_ioctrl_driver.o: This tells the build system that the tcs34725_ioctrl_driver.o object file is to be compiled as part of a kernel module.
 - all: This is the default target, which compiles the module by calling the kernel's build system.
 - clean: This target cleans up the build environment, removing object files and other generated files.
 
 To compile the driver:
 1. Run `make` in the directory where the Makefile is located.
-2. Load the module using `insmod tcs34725.ko`.
+2. Load the module using `insmod tcs34725_ioctrl_driver.ko`.
 3. Verify that the module is loaded with `lsmod`.
 
 To remove the module:
-1. Use `rmmod tcs34725` to remove the module.
+1. Use `rmmod tcs34725_ioctrl_driver` to remove the module.
+
+
+CONFIGURING ATIME AND CONTROL REGISTERS
+---------------------------------------
+
+To properly configure the integration time and gain settings of the TCS34725 sensor, you can write to the `ATIME` and `CONTROL` registers via I2C in the driver code.
+
+ATIME (Integration Time)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+The `ATIME` register controls the integration time of the RGBC sensor. Lower values result in shorter integration times.
+
+- Register Address: 0x01
+- Default Value: 0xFF (2.4ms)
+- Example Values:
+  - 0xFF → 2.4 ms
+  - 0xF6 → 24 ms
+  - 0xD5 → 101 ms
+  - 0xC0 → 153 ms
+  - 0x00 → 700 ms
+
+To set a custom integration time, write the desired value to register 0x01:
+
+    i2c_smbus_write_byte_data(client, 0x01 | 0x80, 0xD5);  // Example: 101ms
+
+CONTROL (Gain Control)
+~~~~~~~~~~~~~~~~~~~~~~
+The `CONTROL` register sets the analog gain for the sensor.
+
+- Register Address: 0x0F
+- Gain Options:
+  - 0x00 = 1x gain
+  - 0x01 = 4x gain
+  - 0x02 = 16x gain
+  - 0x03 = 60x gain
+
+Example of setting gain to 16x:
+
+    i2c_smbus_write_byte_data(client, 0x0F | 0x80, 0x02);  // Set gain to 16x
+
+These settings should be configured after enabling the sensor but before starting data acquisition.
+
 
 
 ====================
@@ -204,7 +245,7 @@ USAGE INSTRUCTIONS
 Make sure your Makefile includes something like:
 
 ```
-obj-m += tcs34725_kernel_driver.o
+obj-m += TCS34725_driver.o
 
 all:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
@@ -235,7 +276,7 @@ echo tcs34725 0x29 > /sys/bus/i2c/devices/i2c-1/new_device
 3. **Insert the module**
 
 ```bash
-sudo insmod tcs34725_kernel_driver.ko
+sudo insmod TCS34725_driver.ko
 ```
 
 4. **Check dmesg for color readings**
@@ -254,7 +295,7 @@ TCS34725 driver initialized
 5. **Remove the module**
 
 ```bash
-sudo rmmod tcs34725_kernel_driver
+sudo rmmod TCS34725_driver
 ```
 
 LIMITATIONS
