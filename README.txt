@@ -39,7 +39,8 @@ CHARACTER DEVICE API
    #define TCS34725_GET_RED     _IOR(TCS34725_IOC_MAGIC, 2, int)
    #define TCS34725_GET_GREEN   _IOR(TCS34725_IOC_MAGIC, 3, int)
    #define TCS34725_GET_BLUE    _IOR(TCS34725_IOC_MAGIC, 4, int)
-
+   #define TCS34725_IOCTL_SET_GAIN    _IOW(TCS34725_IOCTL_MAGIC, 5, int)
+   #define TCS34725_IOCTL_SET_ATIME   _IOW(TCS34725_IOCTL_MAGIC, 6, int)
 To use:
 int fd = open("/dev/tcs34725", O_RDWR);
 int red = 0;
@@ -59,6 +60,8 @@ LIMITATIONS
 EXAMPLE APPLICATION
 int fd = open("/dev/tcs34725", O_RDWR);
 int r, g, b, c;
+ioctl(fd, TCS34725_IOCTL_SET_GAIN, &gain);
+ioctl(fd, TCS34725_IOCTL_SET_ATIME, &atime);
 ioctl(fd, TCS34725_GET_RED, &r);
 ioctl(fd, TCS34725_GET_GREEN, &g);
 ioctl(fd, TCS34725_GET_BLUE, &b);
